@@ -5,11 +5,10 @@ import com.task.hrPortalOne.dto.EmployeeDto;
 import com.task.hrPortalOne.entity.Employee;
 import com.task.hrPortalOne.exception.EmployeeException;
 import com.task.hrPortalOne.exception.EmployeeNotFoundException;
+import com.task.hrPortalOne.exception.NumberFormatException;
 import com.task.hrPortalOne.exception.ServerException;
 import com.task.hrPortalOne.repo.EmployeeRepo;
 import com.task.hrPortalOne.repo.SecurityUserRepo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +28,6 @@ public class EmployeeService  {
     @Autowired
     public SecurityUserRepo securityUserRepo;
 
-    Logger logger = LoggerFactory.getLogger(getClass());
 
     public List<Employee> employeeList()  {
         try {
@@ -43,7 +41,6 @@ public class EmployeeService  {
         }
     }
 
-
     public Page<Employee> getAllDetails(int pageNumber, int pageSize, String sortAttribute)  {
         try {
             if (sortAttribute.isEmpty()) {
@@ -53,14 +50,11 @@ public class EmployeeService  {
             if (!allowedSortAttributes.contains(sortAttribute)) {
                 throw new EmployeeException("Invalid sort attribute. Allowed attributes: name, email, designation");
             }
-            try {
                 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortAttribute));
                 return employeeRepo.findAll(pageable);
-            } catch (Exception ex) {
-                throw new ServerException("Error occurred while retrieving employee details by sorting: ", ex.getMessage());
-            }
-        }
-        catch (Exception ex){
+            } catch (NumberFormatException ex) {
+                throw new NumberFormatException("please provide pageNumber and PageSize properly");
+            } catch (Exception ex){
             throw new ServerException("error in employee service", ex.getMessage());
         }
     }

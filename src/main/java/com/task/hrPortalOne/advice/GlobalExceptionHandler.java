@@ -1,6 +1,7 @@
 package com.task.hrPortalOne.advice;
 
 import com.task.hrPortalOne.exception.*;
+import com.task.hrPortalOne.exception.NumberFormatException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -67,4 +68,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return pd;
     }
 
+    public ProblemDetail handleNumbers(NumberFormatException ex){
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setType(URI.create("https://api.employee.com/errors/bad_request"));
+        pd.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        pd.setTitle(pd.getTitle());
+        pd.setProperty("errorCategory","Generic");
+        pd.setProperty("timestamp", Instant.now());
+        return pd;
+    }
 }

@@ -21,4 +21,8 @@ public interface TimingRecordsRepo extends JpaRepository<TimingRecords,Integer> 
     List<TimingRecords> findStatusByEmployeeEmpIdAndDate(int empId, Date date);
 
     List<TimingRecords>findStatusByEmployeeName(String name);
+
+//    @Query("select t from TimingRecords t join Employee e on t.empId =:e.empId where e.name =:name")
+    List<TimingRecords>findLogInByEmployeeName(String name);
+    List<TimingRecords>findLogOutByEmployeeName(String name);
 }

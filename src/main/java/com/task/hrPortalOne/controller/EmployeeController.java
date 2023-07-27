@@ -38,8 +38,8 @@ public class EmployeeController {
                                               @RequestParam(name = "name")String name){
             return ResponseEntity.ok(employeeService.removeAnEmployee(name, empId));
     }
-    @ExceptionHandler(NumberFormatException.class)
-    public String handleNumberFormatException(NumberFormatException ex) {
-        return "please provide pageNumber and pageSize properly";
-    }
+//    @ExceptionHandler(NumberFormatException.class)
+//    public String handleNumberFormatException(NumberFormatException ex) {
+//        return "please provide pageNumber and pageSize properly";
+//    }
 }

@@ -81,19 +81,13 @@ public class TimingRecordsService {
     }
 
     public String totalWorkingHoursInADay(int empId, Optional<Date> date) {
-//        try {
         List<Login> loginlist = loginRepo.findLogInByEmpIdAndDate(empId, date);
         List<LogOut> logOutList = logOutRepo.findLogOutByEmpIdAndDate(empId, date);
         Duration totalDuration = Duration.ZERO;
-
-        if (empId < 0 || date.isEmpty()) {
-            throw new TimingRecordException("please provide date and empId");
-        }
-
-        if (loginlist.isEmpty() || logOutList.isEmpty()) {
-            throw new TimingRecordNotFoundException("No records found for the given employeeId and date:" + empId + " " + date);
-        }
         try {
+            if (loginlist.isEmpty() || logOutList.isEmpty()) {
+                throw new TimingRecordNotFoundException("No records found for the given employeeId and date:" + empId + " " + date);
+            }
             for (Login login : loginlist) {
                 if (login.getLogIn() == null) {
                     continue;
@@ -115,8 +109,10 @@ public class TimingRecordsService {
             long minutes = (totalSeconds % 3600) / 60;
             long seconds = totalSeconds % 60;
             return "hours: " + hours + ", minutes: " + minutes + ", seconds: " + seconds;
-        } catch (Exception ex) {
-            throw new ServerException("error occurred while calculating total working hours", ex.getMessage());
+        } catch (TimingRecordNotFoundException ex) {
+            throw new TimingRecordNotFoundException("please provide date");
+        } catch (ServerException ex) {
+            throw new ServerException("error in server layer", ex.getMessage());
         }
 
     }
@@ -181,7 +177,6 @@ public class TimingRecordsService {
 
 
     public List<Employee> moreThan8HoursWork(Date date) {
-//        try {
         List<Login> logins = loginRepo.findEmpIdAndLogInByDate(Optional.ofNullable(date));
         List<LogOut> logOuts = logOutRepo.findEmpIdAndLogOutByDate(Optional.ofNullable(date));
         List<Employee> employeesWithMoreThan8HoursWork = new ArrayList<>();
@@ -224,7 +219,7 @@ public class TimingRecordsService {
     public String calculateNumberOfLeaves(String name) {
         List<TimingRecords> timingRecordsList = timingRecordsRepo.findStatusByEmployeeName(name);
         try {
-            if(name.isEmpty()){
+            if (name.isEmpty()) {
                 throw new TimingRecordException("please provide name");
             }
             if (timingRecordsList.isEmpty()) {
@@ -239,28 +234,49 @@ public class TimingRecordsService {
             return "number of leaves by" + " " + name + " " + "is:" + " " + leaveCount;
         } catch (TimingRecordException ex) {
             throw new TimingRecordNotFoundException("please provide the name");
-        }catch (ServerException ex){
-            throw new ServerException("Internal server error",ex.getMessage());
+        } catch (ServerException ex) {
+            throw new ServerException("Internal server error", ex.getMessage());
         }
     }
 
-//    public double findAggregatePercentageWork(String name){
-//        List<TimingRecords> timingRecordsList = timingRecordsRepo.findStatusByEmployeeName(name);
-//        Duration totalDuration = Duration.ZERO;
-//        Duration totalWorkingHours = Duration.ofHours(100);
-//        double aggregateWorkingHours = 0;
-//        for(TimingRecords timingRecords:timingRecordsList){
-//            Time logInTime = Time.valueOf(timingRecords.getLogIn());
-//            Time logOutTime = Time.valueOf(timingRecords.getLogOut());
-//            if(logInTime.toLocalTime()==null&&logOutTime.toLocalTime()==null){
-//                continue;
-//            }
-//            Duration duration = Duration.between(logInTime.toLocalTime(),logOutTime.toLocalTime());
-//            totalDuration=duration.plus(totalDuration);
-//        }
-//        aggregateWorkingHours = (totalDuration.dividedBy(totalWorkingHours))*100;
-//        return aggregateWorkingHours;
-//    }
+    public String findAggregatePercentageWork(String name) {
+        List<TimingRecords> logInList = timingRecordsRepo.findLogInByEmployeeName(name);
+        try {
+            if (logInList.isEmpty()) {
+                throw new TimingRecordNotFoundException("loginList is empty for:" + name);
+            }
+            List<TimingRecords> logOutList = timingRecordsRepo.findLogOutByEmployeeName(name);
+            if (logOutList.isEmpty()) {
+                throw new TimingRecordNotFoundException("logOutList is empty for:" + name);
+            }
+            Duration totalDuration = Duration.ZERO;
+            Duration duration = Duration.ZERO;
+            Duration totalWorkingHours = Duration.ofHours(160);
+            double aggregatePercentage = 0;
+            for (TimingRecords timingRecords : logInList) {
+                if (timingRecords.getLogIn() == null) {
+                    continue;
+                }
+                Time loginTime = Time.valueOf(timingRecords.getLogIn());
+                for (TimingRecords timingRecords1 : logOutList) {
+                    if (timingRecords1.getLogOut() == null) {
+                        continue;
+                    }
+                    Time logOutTime = Time.valueOf(timingRecords1.getLogOut());
+                    duration = Duration.between(loginTime.toLocalTime(), logOutTime.toLocalTime());
+                }
+                totalDuration = duration.plus(totalDuration);
+            }
+            long totalWork = totalDuration.toMinutes();
+            long totalWorkInHours = totalWorkingHours.toHours() * 60;
+            aggregatePercentage = ((double) totalWork / totalWorkInHours) * 100;
+            return name + " " + "working percentage is :" + " " + aggregatePercentage + " " + "%";
+        } catch (TimingRecordNotFoundException ex) {
+            throw new TimingRecordNotFoundException("please provide name");
+        } catch (ServerException ex) {
+            throw new ServerException("error in server", ex.getMessage());
+        }
+    }
 }
 
 

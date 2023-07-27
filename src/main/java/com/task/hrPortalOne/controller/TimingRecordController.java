@@ -80,8 +80,12 @@ public class TimingRecordController {
         return timingRecordsService.calculateNumberOfLeaves(name);
     }
 
-//    @GetMapping("/percentage")
-//    public double percentageOfWork(@RequestParam("name")String name){
-//        return timingRecordsService.findAggregatePercentageWork(name);
-//    }
+    @GetMapping("/percentage")
+    public String percentageOfWork(@RequestParam("name")String name){
+        return timingRecordsService.findAggregatePercentageWork(name);
+    }
+    @ExceptionHandler(NumberFormatException.class)
+    public String handleNumberFormatException(NumberFormatException ex) {
+        return "please provide empId ";
+    }
 }

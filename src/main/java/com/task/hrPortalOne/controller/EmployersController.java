@@ -19,9 +19,9 @@ public class EmployersController {
 
     @GetMapping("/sorting")
     public ResponseEntity<?> sortingAllEmployees(@RequestParam("pageNumber") @Min(value = 1, message = "pageNumber must be greater than or equal to 1") int pageNumber,
-                                                 @RequestParam("pageSize")@Min(value = 1, message = "PageSize must be greater than or equal to 1")   int pageSize,
+                                                 @RequestParam("pageSize") @Min(value = 1, message = "PageSize must be greater than or equal to 1") int pageSize,
                                                  @RequestParam("sortAttribute") String sortAttribute) {
-            return ResponseEntity.ok((Page<Employee>) employeeService.getAllDetails(pageNumber, pageSize, sortAttribute));
+        return ResponseEntity.ok((Page<Employee>) employeeService.getAllDetails(pageNumber, pageSize, sortAttribute));
     }
 
     @ExceptionHandler(NumberFormatException.class)
